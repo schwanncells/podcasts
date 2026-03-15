@@ -21,49 +21,34 @@ sdist/
 var/
 wheels/
 *.egg-info/
-.installed.cfg
 *.egg
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-
-# Environments
-.env
-.venv
-env/
+# Virtual environments
+.venv/
 venv/
 ENV/
-env.bak/
-venv.bak/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
-*~
 
-# Project specific
-data/
+# Coverage / testing
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Project specific — only track summaries
+data/*
+!data/podcasts/
+data/podcasts/*
+!data/podcasts/summaries/
 docs/internal/
 site/
 *.db
@@ -71,26 +56,21 @@ site/
 *.db-wal
 *.db-shm
 
-# Whisper models (large files)
+# Large files
 models/
-
-# Downloaded audio (large files)
 *.mp3
 *.m4a
 *.wav
 *.ogg
 *.opus
 
-# MacOS
+# Platform / tools
 .DS_Store
-
-# Screenshots
 screenshots/
-
-# Claude Code
 .claude/
 CLAUDE.local.md
 .mcp.json
-
-# Test client
 test_client/
+
+# Environment
+.env
