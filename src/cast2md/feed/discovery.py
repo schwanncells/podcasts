@@ -226,6 +226,25 @@ def fetch_feed_sync(url: str) -> str:
         return response.text
 
 
+def _fetch_feed_curl_fallback(url: str, timeout: int = 30) -> str | None:
+    """Fallback feed fetcher using curl subprocess.
+
+    Some hosts (e.g. Substack/Cloudflare) block Python HTTP clients but allow curl.
+    Returns the feed text on success, or None on failure.
+    """
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", str(timeout), url],
+            capture_output=True, text=True, timeout=timeout + 5,
+        )
+        if result.returncode == 0 and result.stdout.strip().startswith("<?xml"):
+            return result.stdout
+    except Exception:
+        pass
+    return None
+
+
 def validate_feed_url(url: str) -> tuple[bool, str, ParsedFeed | None]:
     """Validate a feed URL and return parsed feed data.
 
@@ -238,7 +257,10 @@ def validate_feed_url(url: str) -> tuple[bool, str, ParsedFeed | None]:
     try:
         content = fetch_feed_sync(url)
     except httpx.HTTPError as e:
-        return False, f"Failed to fetch feed: {e}", None
+        # Try curl fallback for hosts that block Python HTTP clients (e.g. Cloudflare)
+        content = _fetch_feed_curl_fallback(url)
+        if content is None:
+            return False, f"Failed to fetch feed: {e}", None
 
     try:
         parsed = parse_feed(content)
@@ -266,8 +288,13 @@ def discover_new_episodes(
     Returns:
         DiscoveryResult with list of new episode IDs and count.
     """
-    # Fetch and parse feed
-    content = fetch_feed_sync(feed.url)
+    # Fetch and parse feed (with curl fallback for Cloudflare-protected hosts)
+    try:
+        content = fetch_feed_sync(feed.url)
+    except httpx.HTTPError:
+        content = _fetch_feed_curl_fallback(feed.url)
+        if content is None:
+            raise
     parsed = parse_feed(content)
 
     new_episode_ids = []
