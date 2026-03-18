@@ -1,0 +1,67 @@
+---
+podcast: Classical Music Happy Hour
+date: 2026-03-18
+source_transcript: data/podcasts/transcripts/Classical_Music_Happy_Hour/2026-03-18_Gabriela_Ortiz_-_Composer_and_Grammy_Gal.md
+---
+
+# Classical Music Happy Hour — "Gabriela Ortiz - Composer and Grammy Gal"
+
+**Host:** Emanuel Ax (pianist, Classical Music Happy Hour). **Guest:** Gabriela Ortiz (Grammy-winning composer; known for blending classical, folk, and Latin musical idioms; latest album *Revolución Diamantina* won three Grammy Awards including Best Contemporary Classical Composition).
+
+## TL;DR
+
+- **Gabriela Ortiz grew up in a Mexican musical family immersed in both classical and folk traditions** — her mother played piano, her father played guitar and sang; the household heard Beethoven, mariachis, folk music, and rock (Beatles, Led Zeppelin) interchangeably, a rare combination that became foundational to her compositional voice.
+- **Ortiz's musical family includes her grandfather, a doctor who attended Mahler performances at Carnegie Hall in the early 1900s and later spent 10 years with Pancho Villa during the Mexican Revolution** — the grandfather's love of Mahler, particularly the Adagietto from the Fifth Symphony, was passed to her father, who first cried listening to that movement; this family lineage in music shaped her emotional relationship to composition.
+- **Ortiz was inspired as a child to become a flamenco dancer after seeing the Spanish filmmaker Carlos Saura's *Bodas de Sangre* (Blood Wedding), featuring dancer Antonio Gades** — she wanted to move to Spain and study with Gades, but her father encouraged her to finish school; she ultimately pursued composition instead, channeling her passion for flamenco and pulse-driven rhythm into her music.
+- **Ortiz's album *Revolución Diamantina* is inspired by a 2020 Mexico City protest against violence toward women, where demonstrators used graffiti and glitter in public monuments** — the protest became known as "Revolución Diamantina" (Diamond Revolution) because of the sparkle; Mexico experiences 11 feminicides daily, making this album Ortiz's artistic response to a social crisis.
+- **Ortiz distinguishes her compositional approach from European modernism by maintaining a strong sense of pulse and rhythm rooted in Latin culture** — where 20th-century European composers (especially post-1950) moved toward abstract series and metric complexity without pulse, Ortiz prioritizes rhythm and pulse even amid metric changes, grounded in her Latin heritage.
+- **Ortiz's three Grammy wins include the violin concerto featuring violinist María Dueñas, which uses extremely fast octave passages Ortiz initially worried would be impossible** — Dueñas' only suggestion was to play the top note of the octaves instead of full octaves at that speed; Ortiz communicated minimally during composition (only twice briefly), then was shocked and delighted when Dueñas performed the entire solo flawlessly at their first rehearsal in a hotel room.
+- **Ortiz frequently collaborates with conductor Gustavo Dudamel, who sometimes conducts her music "very fast" and with great excitement** — Dudamel knows her music so well that no pre-rehearsal score review is needed; their working relationship prioritizes professional scores and efficient orchestra rehearsal time, with minimal changes once rehearsals begin.
+
+---
+
+**Childhood: A Rare Musical Fusion**
+
+Gabriela Ortiz grew up in Mexico City in a musical family where multiple idioms coexisted without hierarchy. Her mother played piano and studied music theory (though worked as a psychologist); her father played guitar and sang beautifully, rooted in Mexican folk traditions from Guadalajara and Jalisco—the heartland of mariachi and son jarocho (a folk style featuring stamped footwork related to flamenco). Rather than hearing only classical music, Ortiz's household played a continuous mix: Beethoven, then mariachis, then Los Folcloristas (a famous 1960s folk ensemble), then rock—Beatles and Led Zeppelin introduced by an uncle who was a mathematician and scientist. This eclecticism was deeply formative; Ortiz notes that most classical composers hear one tradition throughout childhood, but her exposure to folk, classical, rock, and dance music simultaneously gave her compositional palette an unusual range.
+
+A childhood aspiration reveals her deep connection to rhythm and embodied music: inspired by Carlos Saura's film *Bodas de Sangre* (featuring flamenco dancer Antonio Gades), the young Ortiz wanted to abandon high school and move to Spain to study with Gades. Her father deflected her with homework, and she pursued composition instead—but the pull of flamenco's percussive, pulse-driven intensity remained central to her work.
+
+**Family Legacy and Mahler's Influence**
+
+Ortiz carries a striking family story. Her grandfather, a doctor, studied medicine at Georgetown University in the early 20th century and attended Mahler performances at Carnegie Hall in New York. He then returned to Jalisco and worked at a hospital in Guadalajara—precisely when Pancho Villa and the Mexican Revolution erupted. Villa, noticing the fair-haired doctor treating his soldiers, conscripted him; the grandfather spent 10 years with Villa during the Revolution, yet he never lost his love for Mahler. Ortiz's father inherited this passion and grew up listening to Mahler. She recalls the first time she saw her father truly cry was while listening to the Adagietto from Mahler's Fifth Symphony—a sublime, slow movement Ortiz describes as "one of the most tender moments in music history...so intense. It's so beautiful." This family lineage—from her grandfather's chance hearing of Mahler in 1900s New York, through her father's deep emotional attachment, to her own compositional sensibility—creates a multigenerational thread.
+
+**Musical Identity and the Latin Pulse**
+
+Ortiz articulates a crucial distinction between her compositional voice and 20th-century European modernism. In the second half of the 20th century, many European composers moved toward abstract approaches: serial techniques, focus on timbre and texture over harmony/melody, and metric complexity divorced from pulse. Ortiz, grounded in Latin culture, maintains a strong, felt pulse even when using metric changes, sophisticated harmonies, and contemporary techniques. She notes: "For me, it's very difficult to feel a piece of music that doesn't have a specific pulse. Even if you have metric changes or it's very irregular, you have a pulse." This is not a limitation but a choice—a cultural inheritance and artistic conviction that rhythm and pulse remain central to meaningful music.
+
+She also emphasizes that harmony and melody remain vital to her compositional language, resisting the 20th-century tendency to treat them as secondary parameters. This positioning allows her to draw inspiration from diverse sources—folk, classical, rhythm-based traditions—without apology.
+
+**The Violin Concerto and Collaboration with Maria Dueñas**
+
+One of Ortiz's most celebrated recent works is a violin concerto featured on the *Revolución Diamantina* album, performed by violinist María Dueñas. Ortiz doesn't play violin but drew on her experience writing string quartets and, crucially, on knowledge of Dueñas' extraordinary technique. She listened to recordings of Dueñas before composing, then wrote the piece with Dueñas in mind—a key part of her compositional process. Remarkably, Ortiz and Dueñas communicated only twice during composition (once very briefly), and Ortiz felt anxious: "I was very curious and very scary, actually...maybe she doesn't like it." At their first full rehearsal in a hotel room before the premiere with the Eiffel Armani (likely a typo in the transcript; context suggests a major ensemble), Dueñas played the entire solo flawlessly. Her only suggestion: the octave passages at rapid tempos were extremely difficult; could Ortiz allow her to play only the top note instead of full octaves? It was a minor adjustment—essentially all they changed—and the collaboration succeeded brilliantly.
+
+**Gustavo Dudamel and Working with Orchestras**
+
+Ortiz frequently works with conductor Gustavo Dudamel, who has called her "one of the most talented composers in the world." Their collaboration is efficient and deeply grounded in mutual understanding. Dudamel is extremely busy and rarely has time for pre-rehearsal score review with Ortiz; instead, he arrives at orchestra rehearsals having studied the score thoroughly. By now, Dudamel knows her music so well that no extensive discussion is necessary. Ortiz remembers her first rehearsal with the New York Philharmonic conducting one of her pieces: she was terrified, her heart racing, and asked Dudamel, "Did you see the score?" He replied simply, "Yes. Let's rehearse it." That directness and confidence have become the standard. Ortiz emphasizes that orchestra rehearsal time is precious and limited; she arrives with a professional, finished score, and changes during rehearsals are rare and strategic. The relationship between composer and conductor succeeds because both trust each other's craft.
+
+**Revolución Diamantina: Art as Political Response**
+
+The album *Revolución Diamantina* won three Grammy Awards, including Best Contemporary Classical Composition, and its title carries deep political meaning. In 2020, Mexico City experienced large protests against violence toward women and femicide. Demonstrators used graffiti on major monuments and threw glitter throughout the city—an act of defiant, sparkling resistance. The protest became known as "Revolución Diamantina" (Diamond Revolution) for the glitter. Ortiz drew this title for her album and explicit political meaning: Mexico experiences 11 femicides every single day, a humanitarian catastrophe requiring urgent response. The album is Ortiz's artistic statement, her way of saying "we need to stop this."
+
+Beyond feminicide, Ortiz uses composition to address contemporary crises including climate change. She believes composers have a responsibility to speak to urgent human problems through music—not to escape reality but to engage it, to process it, and to move audiences toward consciousness. Yet she also recognizes music's paradoxical power: it can provide comfort and escape (Celia Cruz's salsa can lift sadness; Mozart offers consolation), and it can deepen engagement with human struggle (learning why Messiaen wrote *Quartet for the End of Time* in a concentration camp reveals profound resilience; Bartók's *Concerto for Orchestra*, written while dying of cancer, transcends despair).
+
+**The Folk-Classical Connection in Composition**
+
+When asked about the relationship between folk music and classical composition, Ortiz notes that nearly every significant composer across traditions has drawn on folk idioms. Latin American composers—Villalobos (Brazil), Ginastera (Argentina), Carlos Chávez (Mexico), and Silvestre Revueltas (Mexico)—built their voices on folk foundations. Even European modernists—Bartók, Ligeti, Lutoslavski—began by studying folk music. Beethoven wrote string quartets based on Russian folk songs (the Opus 59 quartets); Chopin composed 53 mazurkas derived from Polish dances. Ortiz emphasizes that "the idea that classical music and other music are separate is something we need to very strongly oppose all the time." This is not nostalgia but artistic reality—the boundaries between genres are artificial and historically recent.
+
+**Orchestration, Instrument Innovation, and the Character of Performance**
+
+When asked about instrument design and orchestral innovation, Ortiz notes that while basic orchestral instruments have remained relatively stable since 1900, there have been significant developments. Flutes have expanded range and new techniques (glissandos were impossible on older flutes). Percussion instruments have evolved dramatically—marimbas now span five octaves and reach low A, expanding compositional possibilities. Pianos have gained power and extended ranges (Bösendorfer makes pianos with extra low octaves, which Ortiz notes are "very scary" for pianists accustomed to standard keyboards). Within string writing, composers explore new playing techniques (harmonics, col legno, sul ponticello) rather than changing instrument design itself.
+
+Regarding orchestral dynamics and sectional relationships, Ortiz notes that orchestras vary. Musicians often cluster by instrument—woodwinds together, brass together, trombones and tubas naturally bonding over beer after concerts. However, she observes that some sections maintain longstanding feuds where members don't speak for years, while others are very friendly. It depends on the ensemble's culture.
+
+**Musical Influences and the Power of Live Performance**
+
+Ortiz's influences are wide. She was profoundly moved by seeing Boulez conduct Stravinsky's *Rite of Spring* for the first time while studying in London—the experience was so overwhelming she "couldn't even breathe." She loves Debussy's *La Mer*, praising his "unbelievable" sense of harmony and color, and sees a deep connection between Ravel and Debussy's obsession with water—both grew up near the ocean and internalized its mystery. She admires Mahler (through family legacy), Messiaen's spiritual depth, and Bartók's refusal to soften his voice even while dying.
+
+When asked which concert she'd wish to hear again, Ortiz chose *Rite of Spring* live—it remains the most revolutionary and viscerally powerful orchestral work she knows.
