@@ -33,6 +33,7 @@ class EpisodeResponse(BaseModel):
     transcript_url: str | None
     transcript_source: str | None
     transcript_model: str | None
+    pocketcasts_transcript_url: str | None
     error_message: str | None
     created_at: str
     updated_at: str
@@ -54,6 +55,7 @@ class EpisodeResponse(BaseModel):
             transcript_url=episode.transcript_url,
             transcript_source=episode.transcript_source,
             transcript_model=episode.transcript_model,
+            pocketcasts_transcript_url=episode.pocketcasts_transcript_url,
             error_message=episode.error_message,
             created_at=episode.created_at.isoformat(),
             updated_at=episode.updated_at.isoformat(),
@@ -112,6 +114,12 @@ class RecentEpisodeResponse(BaseModel):
 
     @classmethod
     def from_episode_with_feed(cls, episode: Episode, feed_title: str) -> "RecentEpisodeResponse":
+        # Check for transcript from any source: local cache, RSS (Podcast 2.0), or Pocket Casts API
+        has_transcript = (
+            episode.transcript_path is not None or
+            episode.transcript_url is not None or
+            episode.pocketcasts_transcript_url is not None
+        )
         return cls(
             id=episode.id,
             feed_id=episode.feed_id,
@@ -120,7 +128,7 @@ class RecentEpisodeResponse(BaseModel):
             description=episode.description[:500] if episode.description else None,
             published_at=episode.published_at.isoformat() if episode.published_at else None,
             status=episode.status.value,
-            has_transcript=episode.transcript_path is not None,
+            has_transcript=has_transcript,
         )
 
 
