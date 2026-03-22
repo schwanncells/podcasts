@@ -44,9 +44,10 @@ htmlcov/
 .hypothesis/
 .pytest_cache/
 
-# Project specific — only track summaries
+# Project specific — only track summaries and episode tracking file
 data/*
 !data/podcasts/
+!data/summarized_episodes.json
 data/podcasts/*
 !data/podcasts/summaries/
 docs/internal/
