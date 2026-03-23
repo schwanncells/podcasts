@@ -84,6 +84,8 @@ class Feed:
     pocketcasts_uuid: Optional[str]
     created_at: datetime
     updated_at: datetime
+    excluded: bool = False
+    excluded_at: Optional[datetime] = None
 
     @property
     def display_title(self) -> str:
@@ -118,6 +120,8 @@ class Feed:
             pocketcasts_uuid=row[11] if len(row) > 11 else None,
             created_at=parse_datetime(row[12]) or datetime.now(),
             updated_at=parse_datetime(row[13]) or datetime.now(),
+            excluded=row[14] if len(row) > 14 else False,
+            excluded_at=parse_datetime(row[15]) if len(row) > 15 else None,
         )
 
 

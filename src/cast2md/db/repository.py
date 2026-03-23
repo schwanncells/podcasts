@@ -58,7 +58,7 @@ class FeedRepository:
     # Columns in the order expected by Feed.from_row
     FEED_COLUMNS = """id, url, title, description, image_url, author, link,
                       categories, custom_title, last_polled, itunes_id, pocketcasts_uuid,
-                      created_at, updated_at"""
+                      created_at, updated_at, excluded, excluded_at"""
 
     def get_by_id(self, feed_id: int) -> Optional[Feed]:
         """Get feed by ID."""

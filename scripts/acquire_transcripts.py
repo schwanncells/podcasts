@@ -117,13 +117,14 @@ def acquire_one(ep_id: int) -> tuple[int, dict]:
     path = transcript_path(ep)
 
     # 1. Disk
-    if path.exists() and path.stat().st_size > 0:
+    if path.exists() and path.stat().st_size > 100:
         return ep_id, {"status": "disk", "path": str(path.relative_to(WORKSPACE)), "chars": path.stat().st_size}
 
     # 2. DB
     text = get_db_transcript(ep_id)
     if text:
         save_transcript(path, text)
+        print(f"✓ ep {ep_id}: found free transcript in DB (may have been flagged as needing AssemblyAI)", file=sys.stderr)
         return ep_id, {"status": "db", "path": str(path.relative_to(WORKSPACE)), "chars": len(text)}
 
     # 3. Free download — fire request, will poll below
@@ -145,6 +146,7 @@ def poll_pending(pending: dict[int, dict], timeout: int = POLL_TIMEOUT) -> dict[
             if text:
                 path = Path(WORKSPACE / info["path"])
                 save_transcript(path, text)
+                print(f"✓ ep {ep_id}: free transcript arrived via Pocket Casts/Podcast 2.0", file=sys.stderr)
                 results[ep_id] = {"status": "pocketcasts", "path": info["path"], "chars": len(text)}
                 del remaining[ep_id]
 

@@ -17,6 +17,8 @@ SCHEMA_STATEMENTS = [
         last_polled TIMESTAMP,
         itunes_id TEXT,
         pocketcasts_uuid TEXT,
+        excluded BOOLEAN NOT NULL DEFAULT FALSE,
+        excluded_at TIMESTAMP,
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
     )
@@ -180,6 +182,32 @@ SCHEMA_STATEMENTS = [
     "CREATE INDEX IF NOT EXISTS idx_segment_embeddings_episode ON segment_embeddings(episode_id)",
     # HNSW index for fast vector search (cosine distance)
     "CREATE INDEX IF NOT EXISTS idx_segment_embedding_vec ON segment_embeddings USING hnsw (embedding vector_cosine_ops)",
+    # Migration: Add excluded column to feed table
+    """
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'feed' AND column_name = 'excluded'
+        ) THEN
+            ALTER TABLE feed ADD COLUMN excluded BOOLEAN NOT NULL DEFAULT FALSE;
+        END IF;
+    END $$;
+    """,
+    # Migration: Add excluded_at timestamp column to feed table
+    """
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'feed' AND column_name = 'excluded_at'
+        ) THEN
+            ALTER TABLE feed ADD COLUMN excluded_at TIMESTAMP;
+        END IF;
+    END $$;
+    """,
+    # Partial index for excluded feeds
+    "CREATE INDEX IF NOT EXISTS idx_feed_excluded ON feed(id) WHERE excluded = true",
 ]
 
 
