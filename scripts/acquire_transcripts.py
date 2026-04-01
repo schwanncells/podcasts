@@ -6,17 +6,18 @@ For each episode, tries in order:
   1. Disk (already exists)
   2. cast2md DB
   3. Free download (Pocket Casts / Podcast 2.0), polls 60s
-  4. AssemblyAI (last resort, costs money)
+  4. YouTube auto-captions via yt-dlp (free, no API key)
+  5. AssemblyAI (last resort, costs money)
 
 Usage:
     python scripts/acquire_transcripts.py [--no-assemblyai] <episode_id> [episode_id ...]
 
-Requires ASSEMBLYAI_API_KEY in environment (for step 4).
+Requires ASSEMBLYAI_API_KEY in environment (for step 5).
 
 Output (JSON to stdout):
     {
         "<episode_id>": {
-            "status": "disk|db|pocketcasts|assemblyai|failed",
+            "status": "disk|db|pocketcasts|youtube|assemblyai|skipped|failed",
             "path": "data/podcasts/transcripts/...",
             "chars": 12345
         },
@@ -42,6 +43,9 @@ WORKSPACE = Path("/home/kayshway/podcasts")
 TRANSCRIPTS_DIR = WORKSPACE / "data/podcasts/transcripts"
 POLL_INTERVAL = 5
 POLL_TIMEOUT = 60
+
+YTDLP_BIN = Path("/home/kayshway/.local/bin/yt-dlp")
+YTDLP_MIN_CHARS = 500  # reject if captions look too sparse (music/shorts/wrong video)
 
 
 def api_get(path: str) -> dict:
@@ -153,6 +157,89 @@ def poll_pending(pending: dict[int, dict], timeout: int = POLL_TIMEOUT) -> dict[
     return results, remaining  # remaining = still no transcript after timeout
 
 
+def _parse_vtt(vtt_text: str) -> str:
+    """Convert VTT content to clean deduped prose."""
+    lines = vtt_text.split("\n")
+    out = []
+    seen_recent: list[str] = []
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("WEBVTT") or line.startswith("NOTE") or "-->" in line or line.isdigit():
+            continue
+        # Strip inline tags (<c>, <00:00:00.000>, etc.)
+        line = re.sub(r"<[^>]+>", "", line)
+        line = re.sub(r"&amp;", "&", line)
+        line = re.sub(r"&lt;", "<", line)
+        line = re.sub(r"&gt;", ">", line)
+        line = line.strip()
+        if not line or line in seen_recent:
+            continue
+        out.append(line)
+        seen_recent.append(line)
+        if len(seen_recent) > 20:
+            seen_recent.pop(0)
+    text = " ".join(out)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def youtube_transcribe(ep_id: int, info: dict) -> tuple[int, dict]:
+    """Search YouTube for the episode and download auto-captions via yt-dlp."""
+    ep = info.get("ep") or api_get(f"/api/episodes/{ep_id}")
+    feed_title = ep.get("feed_title", "")
+    ep_title = ep.get("title", "")
+    path_str = info["path"]
+    output_path = WORKSPACE / path_str
+
+    search_query = f"{feed_title} {ep_title}"
+    tmp_prefix = f"/tmp/yt_{ep_id}"
+
+    try:
+        result = subprocess.run(
+            [
+                str(YTDLP_BIN),
+                f"ytsearch1:{search_query}",
+                "--write-auto-subs",
+                "--sub-lang", "en",
+                "--sub-format", "vtt",
+                "--skip-download",
+                "--no-playlist",
+                "--quiet",
+                "-o", tmp_prefix,
+            ],
+            capture_output=True, text=True, timeout=60,
+        )
+    except subprocess.TimeoutExpired:
+        return ep_id, {"status": "failed", "path": path_str, "error": "yt-dlp timeout"}
+    except FileNotFoundError:
+        return ep_id, {"status": "failed", "path": path_str, "error": "yt-dlp not found"}
+
+    import glob
+    vtt_files = glob.glob(f"{tmp_prefix}*.vtt")
+    if not vtt_files:
+        return ep_id, {"status": "failed", "path": path_str, "error": "no YouTube captions found"}
+
+    vtt_path = vtt_files[0]
+    try:
+        vtt_text = Path(vtt_path).read_text(encoding="utf-8")
+        transcript_text = _parse_vtt(vtt_text)
+    finally:
+        for f in vtt_files:
+            try:
+                Path(f).unlink()
+            except OSError:
+                pass
+
+    if len(transcript_text) < YTDLP_MIN_CHARS:
+        return ep_id, {"status": "failed", "path": path_str,
+                       "error": f"YouTube captions too short ({len(transcript_text)} chars) — likely wrong video or no captions"}
+
+    header = f"# {ep_title}\n\n*Source: Downloaded from publisher (YouTube auto-captions)*\n\n"
+    full_text = header + transcript_text
+    save_transcript(output_path, full_text)
+    print(f"✓ ep {ep_id}: YouTube auto-captions ({len(full_text)} chars)", file=sys.stderr)
+    return ep_id, {"status": "youtube", "path": path_str, "chars": len(full_text)}
+
+
 def assemblyai_transcribe(ep_id: int, info: dict) -> tuple[int, dict]:
     """Fall back to AssemblyAI for an episode."""
     ep = info.get("ep", api_get(f"/api/episodes/{ep_id}"))
@@ -207,7 +294,22 @@ def main():
     else:
         still_pending = {}
 
-    # Phase 4: AssemblyAI for anything still missing (unless --no-assemblyai)
+    # Phase 4: YouTube auto-captions via yt-dlp (free, before AssemblyAI)
+    if still_pending:
+        print(f"Trying YouTube captions for {len(still_pending)} episodes...", file=sys.stderr)
+        yt_still_pending = {}
+        with ThreadPoolExecutor(max_workers=4) as ex:
+            futures = {ex.submit(youtube_transcribe, eid, info): eid
+                       for eid, info in still_pending.items()}
+            for future in as_completed(futures):
+                ep_id, info = future.result()
+                if info["status"] == "youtube":
+                    results[ep_id] = info
+                else:
+                    yt_still_pending[ep_id] = still_pending[ep_id]
+        still_pending = yt_still_pending
+
+    # Phase 5: AssemblyAI for anything still missing (unless --no-assemblyai)
     if still_pending:
         if args.no_assemblyai:
             print(f"Skipping AssemblyAI for {len(still_pending)} episodes (--no-assemblyai)", file=sys.stderr)

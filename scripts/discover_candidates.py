@@ -30,7 +30,8 @@ import concurrent.futures
 import html
 import urllib.request
 import urllib.error
-from datetime import datetime
+import math
+from datetime import datetime, timezone
 from pathlib import Path
 
 API_BASE = "http://127.0.0.1:8000"
@@ -200,12 +201,36 @@ def transcript_status_emoji(has_transcript: bool) -> str:
 
 def main():
     args = sys.argv[1:]
-    if not args:
-        print("Usage: discover_candidates.py <days> [--no-refresh]", file=sys.stderr)
-        sys.exit(1)
 
-    days = int(args[0])
+    since_last_run = "--since-last-run" in args
     do_refresh = "--no-refresh" not in args
+    since_timestamp = None
+
+    if since_last_run:
+        # Compute days from last discovery state
+        state_path = WORKSPACE / "data" / "discovery-state.json"
+        if state_path.exists():
+            try:
+                state = json.loads(state_path.read_text())
+                last_ts = state["last_discovery_at"]
+                since_timestamp = last_ts
+                last_dt = datetime.fromisoformat(last_ts.replace("Z", "+00:00"))
+                delta = datetime.now(timezone.utc) - last_dt
+                days = max(1, math.ceil(delta.total_seconds() / 86400))
+                print(f"Since last run: {last_ts} ({days} days)", file=sys.stderr)
+            except Exception as e:
+                print(f"Warning: could not parse discovery-state.json: {e}. Falling back to 2 days.", file=sys.stderr)
+                days = 2
+        else:
+            print("No discovery-state.json found. Falling back to 2 days (first run).", file=sys.stderr)
+            days = 2
+    else:
+        positional = [a for a in args if not a.startswith("--")]
+        if not positional:
+            print("Usage: discover_candidates.py <days> [--no-refresh]", file=sys.stderr)
+            print("       discover_candidates.py --since-last-run [--no-refresh]", file=sys.stderr)
+            sys.exit(1)
+        days = int(positional[0])
 
     # Refresh active feeds in parallel
     if do_refresh:
@@ -228,10 +253,13 @@ def main():
         ep["summary_exists"] = is_summarized(ep)
         filtered.append(ep)
 
-    # Verify transcript accessibility for episodes flagged as has_transcript=true
-    episodes_to_verify = [ep for ep in filtered if ep.get("has_transcript", False)]
+    # Verify transcript accessibility for ALL unsummarized episodes
+    # The API's has_transcript flag is unreliable — many episodes have free
+    # transcripts available (via Pocket Casts, disk, or DB) that aren't pre-flagged.
+    # Check every unsummarized episode so the discovery emoji is accurate.
+    episodes_to_verify = [ep for ep in filtered if not ep["summary_exists"]]
     if episodes_to_verify:
-        print(f"Verifying transcript accessibility for {len(episodes_to_verify)} episode(s)...", file=sys.stderr)
+        print(f"Verifying transcript accessibility for {len(episodes_to_verify)} unsummarized episode(s)...", file=sys.stderr)
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
             future_to_ep = {ex.submit(verify_transcript_accessible, ep): ep for ep in episodes_to_verify}
             for future in concurrent.futures.as_completed(future_to_ep):
@@ -240,10 +268,12 @@ def main():
                     accessible = future.result()
                 except Exception:
                     accessible = False  # conservative: treat errors as no transcript
-                if not accessible:
-                    ep["has_transcript"] = False
-                    ep["transcript_downgraded"] = True
-                    print(f"⚠ ep {ep['id']}: transcript flag set but not accessible — downgraded", file=sys.stderr)
+                was_flagged = ep.get("has_transcript", False)
+                ep["has_transcript"] = accessible
+                if not accessible and was_flagged:
+                    print(f"⚠ ep {ep['id']}: API flagged transcript but not accessible — downgraded", file=sys.stderr)
+                elif accessible and not was_flagged:
+                    print(f"✓ ep {ep['id']}: free transcript found (not flagged by API)", file=sys.stderr)
 
     # Apply transcript emoji after verification
     for ep in filtered:
@@ -265,6 +295,9 @@ def main():
         "by_podcast": dict(by_podcast),
         "episodes": filtered,
     }
+
+    if since_timestamp:
+        result["since_timestamp"] = since_timestamp
 
     print(json.dumps(result))
 

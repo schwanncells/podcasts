@@ -28,13 +28,21 @@ def format_discovery(data: dict) -> tuple[str, list]:
     if not unsummarized:
         return ":studio_microphone: **Podcast Discovery** — No new unsummarized episodes found.", []
     
-    # Get the most recent date for the headline
-    most_recent = unsummarized[0]["published_at"]  # Already sorted newest first from discover_candidates
-    dt = datetime.fromisoformat(most_recent.replace('Z', '+00:00'))
-    date_str = dt.strftime("%m-%d-%y %I:%M %p").lstrip('0').replace(' 0', ' ')
+    # Build headline — use since_timestamp if available (from --since-last-run),
+    # otherwise fall back to the most recent episode date
+    since_ts = data.get("since_timestamp")
+    if since_ts:
+        dt = datetime.fromisoformat(since_ts.replace('Z', '+00:00'))
+        date_str = dt.strftime("%m-%d-%y %I:%M %p").lstrip('0').replace(' 0', ' ')
+        headline_suffix = f"since last run ({date_str})"
+    else:
+        most_recent = unsummarized[0]["published_at"]
+        dt = datetime.fromisoformat(most_recent.replace('Z', '+00:00'))
+        date_str = dt.strftime("%m-%d-%y %I:%M %p").lstrip('0').replace(' 0', ' ')
+        headline_suffix = f"since {date_str}"
     
     # Build Slack message
-    lines = [f":studio_microphone: **Podcast Discovery** — {len(unsummarized)} new episode(s) found since {date_str}\n"]
+    lines = [f":studio_microphone: **Podcast Discovery** — {len(unsummarized)} new episode(s) found {headline_suffix}\n"]
     
     numbered_episodes = []
     downgraded_count = 0
@@ -108,3 +116,10 @@ if __name__ == "__main__":
     
     # Write numbered mapping file
     write_numbered_mapping(numbered_eps)
+    
+    # Write discovery state (tracks last successful discovery for --since-last-run)
+    state_path = Path(__file__).parent.parent / "data" / "discovery-state.json"
+    state_path.write_text(json.dumps(
+        {"last_discovery_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")},
+        indent=2
+    ))
