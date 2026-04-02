@@ -118,8 +118,13 @@ if __name__ == "__main__":
     write_numbered_mapping(numbered_eps)
     
     # Write discovery state (tracks last successful discovery for --since-last-run)
+    # Also record which episodes were presented to the user for dedup in the next run
     state_path = Path(__file__).parent.parent / "data" / "discovery-state.json"
+    presented_ids = [ep["id"] for _, ep in numbered_eps]
     state_path.write_text(json.dumps(
-        {"last_discovery_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")},
+        {
+            "last_discovery_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "presented_episode_ids": presented_ids,
+        },
         indent=2
     ))
