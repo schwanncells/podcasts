@@ -206,6 +206,7 @@ def main():
     do_refresh = "--no-refresh" not in args
     since_timestamp = None
 
+    presented_ids: set[int] = set()
     if since_last_run:
         # Compute days from last discovery state
         state_path = WORKSPACE / "data" / "discovery-state.json"
@@ -218,6 +219,10 @@ def main():
                 delta = datetime.now(timezone.utc) - last_dt
                 days = max(1, math.ceil(delta.total_seconds() / 86400))
                 print(f"Since last run: {last_ts} ({days} days)", file=sys.stderr)
+                # Load previously presented episode IDs to avoid re-reporting them
+                presented_ids = {int(x) for x in state.get("presented_episode_ids", [])}
+                if presented_ids:
+                    print(f"Filtering {len(presented_ids)} previously-reported episode(s)", file=sys.stderr)
             except Exception as e:
                 print(f"Warning: could not parse discovery-state.json: {e}. Falling back to 2 days.", file=sys.stderr)
                 days = 2
@@ -249,6 +254,9 @@ def main():
     filtered = []
     for ep in episodes:
         if ep["feed_id"] in excluded_ids:
+            continue
+        # Skip episodes already reported in a previous discovery run
+        if int(ep["id"]) in presented_ids:
             continue
         ep["summary_exists"] = is_summarized(ep)
         filtered.append(ep)
