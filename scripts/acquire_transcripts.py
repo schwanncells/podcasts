@@ -182,6 +182,45 @@ def _parse_vtt(vtt_text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def _channel_matches_feed(channel: str, feed_title: str) -> bool:
+    """Return True if the YouTube channel name plausibly belongs to the same show as feed_title."""
+    channel_l = channel.lower()
+    feed_l = feed_title.lower()
+    if channel_l in feed_l or feed_l in channel_l:
+        return True
+    stopwords = {"the", "a", "an", "with", "and", "or", "for", "of", "in", "on", "show"}
+    feed_words = [w for w in re.split(r"\W+", feed_l) if w and w not in stopwords]
+    channel_words = set(re.split(r"\W+", channel_l))
+    matches = sum(1 for w in feed_words if w in channel_words)
+    return matches >= max(1, len(feed_words) // 2)
+
+
+def _find_youtube_video_id(search_query: str, feed_title: str, n: int = 5) -> str | None:
+    """Search YouTube for up to n results and return the first video ID whose channel matches feed_title."""
+    try:
+        result = subprocess.run(
+            [
+                str(YTDLP_BIN),
+                f"ytsearch{n}:{search_query}",
+                "--print", "%(channel)s\t%(id)s",
+                "--no-playlist",
+                "--quiet",
+            ],
+            capture_output=True, text=True, timeout=30,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return None
+
+    for line in result.stdout.strip().splitlines():
+        parts = line.split("\t", 1)
+        if len(parts) != 2:
+            continue
+        channel, video_id = parts
+        if _channel_matches_feed(channel, feed_title):
+            return video_id
+    return None
+
+
 def youtube_transcribe(ep_id: int, info: dict) -> tuple[int, dict]:
     """Search YouTube for the episode and download auto-captions via yt-dlp."""
     ep = info.get("ep") or api_get(f"/api/episodes/{ep_id}")
@@ -193,11 +232,16 @@ def youtube_transcribe(ep_id: int, info: dict) -> tuple[int, dict]:
     search_query = f"{feed_title} {ep_title}"
     tmp_prefix = f"/tmp/yt_{ep_id}"
 
+    video_id = _find_youtube_video_id(search_query, feed_title)
+    if not video_id:
+        return ep_id, {"status": "failed", "path": path_str,
+                       "error": f"no YouTube video found with channel matching '{feed_title}'"}
+
     try:
         result = subprocess.run(
             [
                 str(YTDLP_BIN),
-                f"ytsearch1:{search_query}",
+                f"https://www.youtube.com/watch?v={video_id}",
                 "--write-auto-subs",
                 "--sub-lang", "en",
                 "--sub-format", "vtt",
