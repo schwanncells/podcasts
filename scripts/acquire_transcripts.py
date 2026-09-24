@@ -6,8 +6,10 @@ For each episode, tries in order:
   1. Disk (already exists)
   2. cast2md DB
   3. Free download (Pocket Casts / Podcast 2.0), polls 60s
-  4. YouTube auto-captions via yt-dlp (free, no API key)
-  5. AssemblyAI (last resort, costs money)
+  4. Direct fetch of ep.pocketcasts_transcript_url, if the DB has one the
+     queued download in step 3 didn't pick up (free, no API key)
+  5. YouTube auto-captions via yt-dlp (free, no API key)
+  6. AssemblyAI (last resort, costs money)
 
 Usage:
     python scripts/acquire_transcripts.py [--no-assemblyai] <episode_id> [episode_id ...]
@@ -17,7 +19,7 @@ Requires ASSEMBLYAI_API_KEY in environment (for step 5).
 Output (JSON to stdout):
     {
         "<episode_id>": {
-            "status": "disk|db|pocketcasts|youtube|assemblyai|skipped|failed",
+            "status": "disk|db|pocketcasts|pocketcasts_direct|youtube|assemblyai|skipped|failed",
             "path": "data/podcasts/transcripts/...",
             "chars": 12345
         },
@@ -182,6 +184,38 @@ def _parse_vtt(vtt_text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def direct_url_transcribe(ep_id: int, info: dict) -> tuple[int, dict]:
+    """Fetch ep.pocketcasts_transcript_url directly.
+
+    Belt-and-suspenders alongside the queued /transcript-download in
+    acquire_one(): that endpoint sometimes leaves a known-good URL unfetched
+    (observed 2026-09-24 on a Substack-hosted feed), so check the URL
+    ourselves before falling through to yt-dlp/AssemblyAI.
+    """
+    ep = info.get("ep") or api_get(f"/api/episodes/{ep_id}")
+    url = ep.get("pocketcasts_transcript_url")
+    path_str = info["path"]
+    if not url:
+        return ep_id, {"status": "failed", "path": path_str, "error": "no pocketcasts_transcript_url on episode"}
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; cast2md/1.0)"})
+        raw = urllib.request.urlopen(req, timeout=30).read().decode("utf-8", errors="replace")
+    except Exception as e:
+        return ep_id, {"status": "failed", "path": path_str, "error": f"pocketcasts_transcript_url fetch failed: {e}"}
+
+    text = _parse_vtt(raw) if "-->" in raw or raw.lstrip().startswith("WEBVTT") else raw.strip()
+    if len(text) < YTDLP_MIN_CHARS:
+        return ep_id, {"status": "failed", "path": path_str,
+                       "error": f"pocketcasts_transcript_url content too short ({len(text)} chars)"}
+
+    output_path = WORKSPACE / path_str
+    header = f"# {ep.get('title', '')}\n\n*Source: Downloaded from publisher (Pocket Casts)*\n\n"
+    save_transcript(output_path, header + text)
+    print(f"✓ ep {ep_id}: free transcript via direct pocketcasts_transcript_url fetch ({len(text)} chars)", file=sys.stderr)
+    return ep_id, {"status": "pocketcasts_direct", "path": path_str, "chars": len(text)}
+
+
 def _channel_matches_feed(channel: str, feed_title: str) -> bool:
     """Return True if the YouTube channel name plausibly belongs to the same show as feed_title."""
     channel_l = channel.lower()
@@ -318,6 +352,7 @@ def main():
 
     results = {}
     pending = {}
+    last_error = {}  # ep_id -> most recent failure reason, so a final "skipped" shows the real cause
 
     # Phase 1+2+3-fire: disk, DB, queue free download
     print(f"Checking {len(episode_ids)} episodes (disk + DB)...", file=sys.stderr)
@@ -338,7 +373,23 @@ def main():
     else:
         still_pending = {}
 
-    # Phase 4: YouTube auto-captions via yt-dlp (free, before AssemblyAI)
+    # Phase 4: direct fetch of ep.pocketcasts_transcript_url (free, before yt-dlp/AssemblyAI)
+    if still_pending:
+        print(f"Trying direct transcript URL for {len(still_pending)} episodes...", file=sys.stderr)
+        direct_still_pending = {}
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            futures = {ex.submit(direct_url_transcribe, eid, info): eid
+                       for eid, info in still_pending.items()}
+            for future in as_completed(futures):
+                ep_id, info = future.result()
+                if info["status"] == "pocketcasts_direct":
+                    results[ep_id] = info
+                else:
+                    last_error[ep_id] = info.get("error", "unknown")
+                    direct_still_pending[ep_id] = still_pending[ep_id]
+        still_pending = direct_still_pending
+
+    # Phase 5: YouTube auto-captions via yt-dlp (free, before AssemblyAI)
     if still_pending:
         print(f"Trying YouTube captions for {len(still_pending)} episodes...", file=sys.stderr)
         yt_still_pending = {}
@@ -350,15 +401,18 @@ def main():
                 if info["status"] == "youtube":
                     results[ep_id] = info
                 else:
+                    last_error[ep_id] = info.get("error", "unknown")
                     yt_still_pending[ep_id] = still_pending[ep_id]
         still_pending = yt_still_pending
 
-    # Phase 5: AssemblyAI for anything still missing (unless --no-assemblyai)
+    # Phase 6: AssemblyAI for anything still missing (unless --no-assemblyai)
     if still_pending:
         if args.no_assemblyai:
             print(f"Skipping AssemblyAI for {len(still_pending)} episodes (--no-assemblyai)", file=sys.stderr)
             for ep_id, info in still_pending.items():
-                results[ep_id] = {"status": "skipped", "path": info["path"], "reason": "no-assemblyai flag set"}
+                reason = last_error.get(ep_id, "no free source found")
+                results[ep_id] = {"status": "skipped", "path": info["path"],
+                                  "reason": f"no-assemblyai flag set; last free-source error: {reason}"}
         else:
             print(f"AssemblyAI fallback for {len(still_pending)} episodes...", file=sys.stderr)
             with ThreadPoolExecutor(max_workers=4) as ex:
