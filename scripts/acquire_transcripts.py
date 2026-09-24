@@ -243,7 +243,7 @@ def youtube_transcribe(ep_id: int, info: dict) -> tuple[int, dict]:
                 str(YTDLP_BIN),
                 f"https://www.youtube.com/watch?v={video_id}",
                 "--write-auto-subs",
-                "--sub-lang", "en",
+                "--sub-lang", "en.*",
                 "--sub-format", "vtt",
                 "--skip-download",
                 "--no-playlist",
