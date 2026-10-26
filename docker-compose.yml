@@ -21,6 +21,7 @@ services:
       - "8000:8000"
     volumes:
       - ./data:/app/data
+    env_file: .env
     environment:
       - DATABASE_URL=postgresql://cast2md:dev@postgres:5432/cast2md
       - STORAGE_PATH=/app/data/podcasts
